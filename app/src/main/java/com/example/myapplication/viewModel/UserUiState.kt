@@ -64,7 +64,6 @@ fun refresh() {
             try {
                 repository.refreshUsers()
             } catch (e: Exception) {
-                // Handle error (e.g., via a Channel for snackbars)
             } finally {
                 _isRefreshing.value = false
             }

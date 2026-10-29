@@ -11,7 +11,6 @@ import kotlin.getValue
 
 class UserApplication : Application() {
 
-    // Manual Dependency Injection
     private val database by lazy {
         Room.databaseBuilder(this, AppDatabase::class.java, "user_db").build()
     }

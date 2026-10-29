@@ -12,7 +12,6 @@ class UserRepository(
     private val api: UserApi,
     private val dao: UserDao
 ) {
-    // Single source of truth: Always observe the database
     fun getUsers(query: String): Flow<List<User>> =
         dao.getUsers(query).map { entities -> entities.map { it.toDomain() } }
 

@@ -1,5 +1,6 @@
 package com.example.myapplication.compose
 
+import android.app.Activity
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -14,6 +15,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CenterAlignedTopAppBar
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -33,6 +35,10 @@ import com.example.myapplication.viewModel.UserViewModel
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.TopAppBar
 import androidx.compose.material3.TopAppBarDefaults
+import androidx.compose.runtime.SideEffect
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalView
+import androidx.core.view.WindowCompat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,11 +49,22 @@ fun UserListScreen(
     val uiState by viewModel.uiState.collectAsStateWithLifecycle()
     val searchQuery by viewModel.searchQuery.collectAsStateWithLifecycle()
 
+    val view = LocalView.current
+    val statusBarColor = MaterialTheme.colorScheme.primaryContainer
+    if (!view.isInEditMode) {
+        SideEffect {
+            val window = (view.context as Activity).window
+            window.statusBarColor = statusBarColor.toArgb()
+            WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = true
+        }
+    }
+
     Scaffold(
         topBar = {
-            TopAppBar(
+            // Changed from TopAppBar to CenterAlignedTopAppBar
+            CenterAlignedTopAppBar(
                 title = { Text("User List") },
-                colors = TopAppBarDefaults.topAppBarColors(
+                colors = TopAppBarDefaults.centerAlignedTopAppBarColors( // Updated colors function
                     containerColor = MaterialTheme.colorScheme.primaryContainer,
                     titleContentColor = MaterialTheme.colorScheme.primary
                 )
@@ -65,15 +82,24 @@ fun UserListScreen(
                 onValueChange = viewModel::onSearch,
                 modifier = Modifier.fillMaxWidth(),
                 label = { Text("Search by name") },
-                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) }
+                leadingIcon = { Icon(Icons.Default.Search, contentDescription = null) },
+                singleLine = true
             )
 
             Spacer(modifier = Modifier.height(16.dp))
 
             when (val state = uiState) {
                 is UserUiState.Loading -> CircularProgressIndicator(Modifier.align(Alignment.CenterHorizontally))
-                is UserUiState.Empty -> Text("No users found.", Modifier.align(Alignment.CenterHorizontally))
-                is UserUiState.Error -> RetryView(message = state.message, onRetry = viewModel::refresh)
+                is UserUiState.Empty -> Text(
+                    "No users found.",
+                    Modifier.align(Alignment.CenterHorizontally)
+                )
+
+                is UserUiState.Error -> RetryView(
+                    message = state.message,
+                    onRetry = viewModel::refresh
+                )
+
                 is UserUiState.Success -> {
                     LazyColumn {
                         items(state.users) { user ->
@@ -98,7 +124,11 @@ fun UserItem(user: User, onClick: () -> Unit) {
         Column(modifier = Modifier.padding(16.dp)) {
             Text(text = user.name, style = MaterialTheme.typography.titleMedium)
             Text(text = user.email, style = MaterialTheme.typography.bodyMedium)
-            Text(text = user.companyName, style = MaterialTheme.typography.bodySmall, color = Color.Gray)
+            Text(
+                text = user.companyName,
+                style = MaterialTheme.typography.bodySmall,
+                color = Color.Gray
+            )
         }
     }
 }

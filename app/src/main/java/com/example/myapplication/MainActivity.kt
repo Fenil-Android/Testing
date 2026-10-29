@@ -16,7 +16,6 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
 
-        // Get the repository from Application class
         val repository = (application as UserApplication).repository
         val factory = UserViewModel.Factory(repository)
 
